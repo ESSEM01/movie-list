@@ -9,5 +9,11 @@ export default defineConfig({
   },
   ssr: {
     noExternal: ['swiper']
+  },
+  // In produzione il client e servito dal server Adonis (@adonisjs/static):
+  // la build finisce in server/public, che `node ace build` copia in build/
+  build: {
+    outDir: '../server/public',
+    emptyOutDir: true
   }
 })

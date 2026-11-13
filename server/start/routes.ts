@@ -11,8 +11,8 @@ import router from '@adonisjs/core/services/router'
 import { middleware } from './kernel.js'
 import { authIpThrottle, authThrottle, tmdbThrottle } from './limiter.js'
 
-// Health check
-router.get('/', async () => {
+// Health check (usato da Render): / e il client React
+router.get('/api/health', async () => {
   return {
     hello: 'Movie List API',
     version: '1.0.0',
