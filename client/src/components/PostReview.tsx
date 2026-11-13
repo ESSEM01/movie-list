@@ -31,7 +31,7 @@ const PostReview = ({ movieId, onReviewSubmitted }: PostReviewProps) => {
             alert('Recensione inviata con successo!')
         } catch (err) {
             console.error('Failed to submit review:', err)
-            alert('Errore nell\'invio della recensione')
+            alert(err instanceof Error ? err.message : 'Errore nell\'invio della recensione')
         } finally {
             setSubmitting(false)
         }
@@ -47,6 +47,7 @@ const PostReview = ({ movieId, onReviewSubmitted }: PostReviewProps) => {
                     placeholder="Scrivi la tua recensione..."
                     onChange={(e) => setReviewText(e.target.value)}
                     rows={5}
+                    maxLength={2000}
                 />
 
                 <button

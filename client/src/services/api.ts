@@ -42,6 +42,10 @@ export const getMovieDetails = async (movieId: number) => {
     return data;
 };
 
+// Il server risponde con { message } oppure, per validazione e rate limit, { errors: [{ message }] }
+const errorMessage = (data: any, fallback: string): string =>
+    data?.message ?? data?.errors?.[0]?.message ?? fallback;
+
 // Backend API calls - Auth
 export const register = async (email: string, password: string, fullName?: string) => {
     const response = await fetch(`${BACKEND_URL}/auth/register`, {
@@ -52,7 +56,7 @@ export const register = async (email: string, password: string, fullName?: strin
     });
     const data = await response.json();
 
-    if (!response.ok) throw new Error(data.message || 'Registration failed');
+    if (!response.ok) throw new Error(errorMessage(data, 'Registration failed'));
 
     return data;
 };
@@ -66,7 +70,7 @@ export const login = async (email: string, password: string) => {
     });
     const data = await response.json();
 
-    if (!response.ok) throw new Error(data.message || 'Login failed');
+    if (!response.ok) throw new Error(errorMessage(data, 'Login failed'));
 
     return data;
 };
@@ -86,7 +90,7 @@ export const getCurrentUser = async () => {
         if (!response.ok) {
             if (response.status === 401) return null;
             const data = await response.json();
-            throw new Error(data.message || 'Failed to get user');
+            throw new Error(errorMessage(data, 'Failed to get user'));
         }
 
         const data = await response.json();
@@ -106,7 +110,7 @@ export const getFavorites = async () => {
     const response = await fetchWithAuth(`${BACKEND_URL}/favorites`);
     const data = await response.json();
 
-    if (!response.ok) throw new Error(data.message || 'Failed to fetch favorites');
+    if (!response.ok) throw new Error(errorMessage(data, 'Failed to fetch favorites'));
 
     return data.favorites;
 };
@@ -118,7 +122,7 @@ export const addFavorite = async (movie: { id: number; title: string; release_da
     });
     const data = await response.json();
 
-    if (!response.ok) throw new Error(data.message || 'Failed to add favorite');
+    if (!response.ok) throw new Error(errorMessage(data, 'Failed to add favorite'));
 
     return data.favorite;
 };
@@ -129,7 +133,7 @@ export const removeFavorite = async (movieId: number) => {
     });
     const data = await response.json();
 
-    if (!response.ok) throw new Error(data.message || 'Failed to remove favorite');
+    if (!response.ok) throw new Error(errorMessage(data, 'Failed to remove favorite'));
 
     return data;
 };
@@ -138,7 +142,7 @@ export const getReviews = async (movieId: number) => {
     const response = await fetchWithAuth(`${BACKEND_URL}/reviews/${movieId}`);
     const data = await response.json();
 
-    if (!response.ok) throw new Error(data.message || 'Failed to fetch reviews');
+    if (!response.ok) throw new Error(errorMessage(data, 'Failed to fetch reviews'));
 
     return data.reviews;
 }
@@ -150,7 +154,7 @@ export const addReview = async (movieId: number, content: string, rating: number
     });
     const data = await response.json();
 
-    if (!response.ok) throw new Error(data.message || 'Failed to add review');
+    if (!response.ok) throw new Error(errorMessage(data, 'Failed to add review'));
 
     return data.review;
 }
