@@ -20,6 +20,13 @@ export default await Env.create(new URL('../', import.meta.url), {
 
   /*
   |----------------------------------------------------------
+  | Comma separated list of origins allowed by CORS
+  |----------------------------------------------------------
+  */
+  CORS_ORIGINS: Env.schema.string.optional(),
+
+  /*
+  |----------------------------------------------------------
   | Variables for configuring database connection
   |----------------------------------------------------------
   */

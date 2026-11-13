@@ -1,4 +1,16 @@
+import env from '#start/env'
 import { defineConfig } from '@adonisjs/cors'
+
+/**
+ * Origins allowed to call the API with credentials. Configure them with
+ * the comma separated CORS_ORIGINS env variable; defaults to the Vite
+ * dev server.
+ */
+const allowedOrigins = env
+  .get('CORS_ORIGINS', 'http://localhost:5173,http://127.0.0.1:5173')
+  .split(',')
+  .map((origin) => origin.trim())
+  .filter(Boolean)
 
 /**
  * Configuration options to tweak the CORS policy. The following
@@ -8,14 +20,8 @@ import { defineConfig } from '@adonisjs/cors'
  */
 const corsConfig = defineConfig({
   enabled: true,
-  // Allow requests from React dev server
-  origin: (origin) => {
-    const allowedOrigins = [
-      'http://localhost:5173', // Vite dev server
-      'http://127.0.0.1:5173',
-    ]
-    return allowedOrigins.includes(origin || '') || !origin
-  },
+  // Requests without an Origin header (curl, same-origin) are allowed
+  origin: (origin) => !origin || allowedOrigins.includes(origin),
   methods: ['GET', 'HEAD', 'POST', 'PUT', 'DELETE'],
   headers: true,
   exposeHeaders: [],
