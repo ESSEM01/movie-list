@@ -13,6 +13,11 @@ const dbConfig = defineConfig({
         user: env.get('DB_USER'),
         password: env.get('DB_PASSWORD'),
         database: env.get('DB_DATABASE'),
+        /**
+         * TLS, required by TiDB Cloud Starter. Its certificate is signed by
+         * a public CA, so Node's built-in CA bundle is enough to verify it.
+         */
+        ssl: env.get('DB_SSL') ? { minVersion: 'TLSv1.2', rejectUnauthorized: true } : undefined,
       },
       migrations: {
         naturalSort: true,

@@ -9,6 +9,20 @@ export const http = defineConfig({
   allowMethodSpoofing: false,
 
   /**
+   * On Render the app is not reachable from the internet: every request
+   * goes through Render's proxy, which connects from a private address
+   * (the default only trusts loopback) and puts the client IP in
+   * X-Forwarded-For. Trusting every hop makes request.ip() return the
+   * leftmost X-Forwarded-For entry, the client IP, which the per-IP rate
+   * limits in start/limiter.ts rely on. Render makes the same choice for
+   * Python apps (FORWARDED_ALLOW_IPS=*). A client that sends its own
+   * X-Forwarded-For could choose that entry if the proxy appends to the
+   * header instead of replacing it: check it once deployed (see DEPLOY.md).
+   * Do not keep this if the server is ever exposed without a proxy.
+   */
+  trustProxy: true,
+
+  /**
    * Enabling async local storage will let you access HTTP context
    * from anywhere inside your application.
    */
