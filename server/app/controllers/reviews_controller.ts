@@ -1,12 +1,20 @@
 import Review from '#models/review'
 import type { HttpContext } from '@adonisjs/core/http'
+import type { ModelQueryBuilderContract } from '@adonisjs/lucid/types/model'
+import type User from '#models/user'
+
+/**
+ * Only the public fields of the author: never expose the email
+ */
+const publicAuthor = (query: ModelQueryBuilderContract<typeof User>) =>
+  query.select('id', 'full_name')
 
 export default class ReviewsController {
   // GET /api/reviews/:movieId
   public async index({ params, response }: HttpContext) {
     const movieId = params.movieId
 
-    const reviews = await Review.query().where('movieId', movieId).preload('user')
+    const reviews = await Review.query().where('movieId', movieId).preload('user', publicAuthor)
 
     return response.ok({ reviews })
   }
@@ -27,7 +35,7 @@ export default class ReviewsController {
       rating,
     })
 
-    await review.load('user')
+    await review.load('user', publicAuthor)
 
     return response.created({ review })
   }
