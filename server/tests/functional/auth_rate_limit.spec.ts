@@ -55,9 +55,7 @@ test.group('Auth | rate limit', (group) => {
 
   test('blocca la sesta registrazione in un minuto con 429', async ({ client }) => {
     for (let attempt = 0; attempt < 5; attempt++) {
-      await client
-        .post('/api/auth/register')
-        .json({ email: 'spam@example.com', password: 'corta' })
+      await client.post('/api/auth/register').json({ email: 'spam@example.com', password: 'corta' })
     }
 
     const response = await client

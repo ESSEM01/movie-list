@@ -18,8 +18,5 @@ import limiter from '@adonisjs/limiter/services/main'
 export const authThrottle = limiter.define('auth', (ctx) => {
   const email = String(ctx.request.input('email', '')).trim().toLowerCase()
 
-  return limiter
-    .allowRequests(5)
-    .every('1 minute')
-    .usingKey(`${ctx.request.ip()}_${email}`)
+  return limiter.allowRequests(5).every('1 minute').usingKey(`${ctx.request.ip()}_${email}`)
 })
