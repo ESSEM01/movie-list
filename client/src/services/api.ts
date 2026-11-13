@@ -1,6 +1,6 @@
-const API_KEY = import.meta.env.VITE_TMDB_API_KEY;
-const BASE_URL = "https://api.themoviedb.org/3";
 const BACKEND_URL = import.meta.env.VITE_API_URL;
+// TMDB passa dal server: la chiave non arriva mai al browser
+const TMDB_URL = `${BACKEND_URL}/tmdb`;
 
 // Helper for authenticated requests to backend
 const fetchWithAuth = async (url: string, options: RequestInit = {}) => {
@@ -23,23 +23,30 @@ const fetchWithAuth = async (url: string, options: RequestInit = {}) => {
     return response;
 };
 
-// TMDB API calls
-export const getPopularMovies = async () => {
-    const response = await fetch(`${BASE_URL}/movie/popular?api_key=${API_KEY}`);
+// Il server risponde con { message } oppure, per validazione e rate limit, { errors: [{ message }] }
+const errorMessage = (data: any, fallback: string): string =>
+    data?.message ?? data?.errors?.[0]?.message ?? fallback;
+
+// TMDB API calls (tramite il server)
+const tmdbGet = async (path: string) => {
+    const response = await fetchWithAuth(`${TMDB_URL}${path}`);
     const data = await response.json();
+    if (!response.ok) throw new Error(errorMessage(data, 'Failed to load movies'));
+    return data;
+};
+
+export const getPopularMovies = async () => {
+    const data = await tmdbGet('/movies/popular');
     return data.results;
 };
 
 export const searchMovies = async (query: string) => {
-    const response = await fetch(`${BASE_URL}/search/movie?api_key=${API_KEY}&query=${encodeURIComponent(query)}`);
-    const data = await response.json();
+    const data = await tmdbGet(`/search?query=${encodeURIComponent(query)}`);
     return data.results;
 };
 
 export const getMovieDetails = async (movieId: number) => {
-    const response = await fetch(`${BASE_URL}/movie/${movieId}?api_key=${API_KEY}&append_to_response=credits,videos`);
-    const data = await response.json();
-    return data;
+    return tmdbGet(`/movies/${movieId}`);
 };
 
 // Backend API calls - Auth
@@ -52,7 +59,7 @@ export const register = async (email: string, password: string, fullName?: strin
     });
     const data = await response.json();
 
-    if (!response.ok) throw new Error(data.message || 'Registration failed');
+    if (!response.ok) throw new Error(errorMessage(data, 'Registration failed'));
 
     return data;
 };
@@ -66,7 +73,7 @@ export const login = async (email: string, password: string) => {
     });
     const data = await response.json();
 
-    if (!response.ok) throw new Error(data.message || 'Login failed');
+    if (!response.ok) throw new Error(errorMessage(data, 'Login failed'));
 
     return data;
 };
@@ -86,7 +93,7 @@ export const getCurrentUser = async () => {
         if (!response.ok) {
             if (response.status === 401) return null;
             const data = await response.json();
-            throw new Error(data.message || 'Failed to get user');
+            throw new Error(errorMessage(data, 'Failed to get user'));
         }
 
         const data = await response.json();
@@ -106,7 +113,7 @@ export const getFavorites = async () => {
     const response = await fetchWithAuth(`${BACKEND_URL}/favorites`);
     const data = await response.json();
 
-    if (!response.ok) throw new Error(data.message || 'Failed to fetch favorites');
+    if (!response.ok) throw new Error(errorMessage(data, 'Failed to fetch favorites'));
 
     return data.favorites;
 };
@@ -118,7 +125,7 @@ export const addFavorite = async (movie: { id: number; title: string; release_da
     });
     const data = await response.json();
 
-    if (!response.ok) throw new Error(data.message || 'Failed to add favorite');
+    if (!response.ok) throw new Error(errorMessage(data, 'Failed to add favorite'));
 
     return data.favorite;
 };
@@ -129,7 +136,7 @@ export const removeFavorite = async (movieId: number) => {
     });
     const data = await response.json();
 
-    if (!response.ok) throw new Error(data.message || 'Failed to remove favorite');
+    if (!response.ok) throw new Error(errorMessage(data, 'Failed to remove favorite'));
 
     return data;
 };
@@ -138,7 +145,7 @@ export const getReviews = async (movieId: number) => {
     const response = await fetchWithAuth(`${BACKEND_URL}/reviews/${movieId}`);
     const data = await response.json();
 
-    if (!response.ok) throw new Error(data.message || 'Failed to fetch reviews');
+    if (!response.ok) throw new Error(errorMessage(data, 'Failed to fetch reviews'));
 
     return data.reviews;
 }
@@ -150,7 +157,7 @@ export const addReview = async (movieId: number, content: string, rating: number
     });
     const data = await response.json();
 
-    if (!response.ok) throw new Error(data.message || 'Failed to add review');
+    if (!response.ok) throw new Error(errorMessage(data, 'Failed to add review'));
 
     return data.review;
 }
@@ -167,15 +174,13 @@ export const isAuthenticated = async (): Promise<boolean> => {
 
 // Get genres
 export const getGenres = async () => {
-    const response = await fetch(`${BASE_URL}/genre/movie/list?api_key=${API_KEY}`);
-    const data = await response.json();
+    const data = await tmdbGet('/genres');
     return data.genres;
 }
 
 // Discover movies by genre
 export const discoverMoviesByGenre = async (genreId: number) => {
-    const response = await fetch(`${BASE_URL}/discover/movie?api_key=${API_KEY}&with_genres=${genreId}`);
-    const data = await response.json();
+    const data = await tmdbGet(`/genres/${genreId}/movies`);
     return data.results;
 }
 

@@ -1,6 +1,20 @@
 import { defineConfig } from '@adonisjs/core/app'
+import { indexEntities } from '@adonisjs/core/generators'
 
 export default defineConfig({
+  /*
+  |--------------------------------------------------------------------------
+  | Hooks
+  |--------------------------------------------------------------------------
+  |
+  | Assembler hooks executed during dev, build and test. The "indexEntities"
+  | hook is required by AdonisJS v7.
+  |
+  */
+  hooks: {
+    init: [indexEntities()],
+  },
+
   /*
   |--------------------------------------------------------------------------
   | Experimental flags
@@ -47,7 +61,8 @@ export default defineConfig({
     () => import('@adonisjs/cors/cors_provider'),
     () => import('@adonisjs/lucid/database_provider'),
     () => import('@adonisjs/session/session_provider'),
-    () => import('@adonisjs/auth/auth_provider')
+    () => import('@adonisjs/auth/auth_provider'),
+    () => import('@adonisjs/limiter/limiter_provider'),
   ],
 
   /*
@@ -72,12 +87,12 @@ export default defineConfig({
   tests: {
     suites: [
       {
-        files: ['tests/unit/**/*.spec(.ts|.js)'],
+        files: ['tests/unit/**/*.spec.{ts,js}'],
         name: 'unit',
         timeout: 2000,
       },
       {
-        files: ['tests/functional/**/*.spec(.ts|.js)'],
+        files: ['tests/functional/**/*.spec.{ts,js}'],
         name: 'functional',
         timeout: 30000,
       },

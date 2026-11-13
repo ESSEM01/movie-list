@@ -1,5 +1,6 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import Favorite from '#models/favorite'
+import { createFavoriteValidator, deleteFavoriteValidator } from '#validators/favorite'
 
 export default class FavoritesController {
   /**
@@ -23,14 +24,14 @@ export default class FavoritesController {
   /**
    * Add a movie to favorites
    */
-  async store({ auth, request, response }: HttpContext) {
+  async store({ auth, request, response, logger }: HttpContext) {
     const user = auth.getUserOrFail()
     const {
       id,
       title,
       release_date: releaseDate,
       poster_path: posterPath,
-    } = request.only(['id', 'title', 'release_date', 'poster_path'])
+    } = await request.validateUsing(createFavoriteValidator)
 
     try {
       // Check if already exists
@@ -49,8 +50,8 @@ export default class FavoritesController {
         userId: user.id,
         movieId: id,
         title,
-        releaseDate: releaseDate,
-        posterPath: posterPath,
+        releaseDate: releaseDate ?? '',
+        posterPath: posterPath ?? null,
       })
 
       return response.created({
@@ -62,9 +63,10 @@ export default class FavoritesController {
         },
       })
     } catch (error) {
+      // Keep driver/SQL details in the server logs, never in the response
+      logger.error({ err: error, userId: user.id }, 'Unable to add favorite')
       return response.badRequest({
         message: 'Unable to add favorite',
-        error: error.message,
       })
     }
   }
@@ -72,9 +74,11 @@ export default class FavoritesController {
   /**
    * Remove a movie from favorites
    */
-  async destroy({ auth, params, response }: HttpContext) {
+  async destroy({ auth, request, response }: HttpContext) {
     const user = auth.getUserOrFail()
-    const { movieId } = params
+    const {
+      params: { movieId },
+    } = await request.validateUsing(deleteFavoriteValidator)
 
     const favorite = await Favorite.query()
       .where('user_id', user.id)

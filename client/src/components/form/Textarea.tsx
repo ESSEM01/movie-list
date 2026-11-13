@@ -4,9 +4,10 @@ type TextAreaProps = {
     onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void
     className?: string
     rows?: number
+    maxLength?: number
 }
 
-const TextArea = ({ value = '', placeholder, onChange, className, rows }: TextAreaProps) => {
+const TextArea = ({ value = '', placeholder, onChange, className, rows, maxLength }: TextAreaProps) => {
     return (
         <textarea
             className={className}
@@ -14,6 +15,7 @@ const TextArea = ({ value = '', placeholder, onChange, className, rows }: TextAr
             value={value}
             onChange={onChange}
             rows={rows}
+            maxLength={maxLength}
             required
         />
     )

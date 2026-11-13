@@ -16,7 +16,7 @@
     "install:all": "npm install && npm install --workspace=client && npm install --workspace=server"
   },
   "engines": {
-    "node": ">=18.0.0",
+    "node": ">=24.0.0",
     "npm": ">=8.0.0"
   },
   "description": "Movie List - React Frontend + AdonisJS Backend Monorepo",

@@ -20,9 +20,17 @@ export default await Env.create(new URL('../', import.meta.url), {
 
   /*
   |----------------------------------------------------------
+  | Comma separated list of origins allowed by CORS
+  |----------------------------------------------------------
+  */
+  CORS_ORIGINS: Env.schema.string.optional(),
+
+  /*
+  |----------------------------------------------------------
   | Variables for configuring database connection
   |----------------------------------------------------------
   */
+  DB_CONNECTION: Env.schema.enum.optional(['mysql', 'sqlite'] as const),
   DB_HOST: Env.schema.string({ format: 'host' }),
   DB_PORT: Env.schema.number(),
   DB_USER: Env.schema.string(),
@@ -34,5 +42,19 @@ export default await Env.create(new URL('../', import.meta.url), {
   | Variables for configuring session package
   |----------------------------------------------------------
   */
-  SESSION_DRIVER: Env.schema.enum(['cookie', 'memory'] as const)
+  SESSION_DRIVER: Env.schema.enum(['cookie', 'memory'] as const),
+
+  /*
+  |----------------------------------------------------------
+  | Variables for configuring the limiter package
+  |----------------------------------------------------------
+  */
+  LIMITER_STORE: Env.schema.enum.optional(['memory'] as const),
+
+  /*
+  |----------------------------------------------------------
+  | TMDB key (v3 API key or v4 read access token), server only
+  |----------------------------------------------------------
+  */
+  TMDB_API_KEY: Env.schema.string.optional(),
 })

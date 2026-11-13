@@ -78,7 +78,8 @@ function Auth() {
                             onChange={(e) => setPassword(e.target.value)}
                             required
                             placeholder="••••••••"
-                            minLength={6}
+                            minLength={8}
+                            maxLength={72}
                         />
                     </div>
                     
