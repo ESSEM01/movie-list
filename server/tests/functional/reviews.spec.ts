@@ -20,6 +20,14 @@ test.group('Reviews | index', (group) => {
     const [review] = response.body().reviews
     assert.deepEqual(review.user, { id: author.id, fullName: 'Anna Bianchi' })
   })
+
+  test('rifiuta un movieId non positivo nel percorso con 422', async ({ client }) => {
+    const user = await createUser()
+
+    const response = await client.get('/api/reviews/-1').loginAs(user)
+
+    response.assertStatus(422)
+  })
 })
 
 test.group('Reviews | store', (group) => {
@@ -36,5 +44,43 @@ test.group('Reviews | store', (group) => {
     response.assertStatus(201)
     response.assertBodyContains({ review: { movieId: 42, rating: 5, comment: 'Capolavoro' } })
     assert.deepEqual(response.body().review.user, { id: user.id, fullName: 'Anna Bianchi' })
+  })
+
+  test('rifiuta un movieId non positivo con 422', async ({ client }) => {
+    const user = await createUser()
+
+    const response = await client
+      .post('/api/reviews')
+      .json({ movieId: 0, rating: 3, content: 'Ok' })
+      .loginAs(user)
+
+    response.assertStatus(422)
+    response.assertBodyContains({ errors: [{ field: 'movieId' }] })
+  })
+
+  test('rifiuta un rating fuori dal range 1-5 con 422', async ({ client }) => {
+    const user = await createUser()
+
+    for (const rating of [0, 6, 2.5]) {
+      const response = await client
+        .post('/api/reviews')
+        .json({ movieId: 42, rating, content: 'Ok' })
+        .loginAs(user)
+
+      response.assertStatus(422)
+      response.assertBodyContains({ errors: [{ field: 'rating' }] })
+    }
+  })
+
+  test('rifiuta un contenuto oltre 2000 caratteri con 422', async ({ client }) => {
+    const user = await createUser()
+
+    const response = await client
+      .post('/api/reviews')
+      .json({ movieId: 42, rating: 3, content: 'a'.repeat(2001) })
+      .loginAs(user)
+
+    response.assertStatus(422)
+    response.assertBodyContains({ errors: [{ field: 'content', rule: 'maxLength' }] })
   })
 })
