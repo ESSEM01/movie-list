@@ -53,6 +53,35 @@ test.group('Auth | rate limit', (group) => {
     response.assertStatus(429)
   })
 
+  test("il limite ignora gli accenti nell'email", async ({ client }) => {
+    for (let attempt = 0; attempt < 5; attempt++) {
+      await client
+        .post('/api/auth/login')
+        .json({ email: 'accento@example.com', password: 'password-sbagliata' })
+    }
+
+    const response = await client
+      .post('/api/auth/login')
+      .json({ email: 'accénto@example.com', password: 'password-sbagliata' })
+    response.assertStatus(429)
+  })
+
+  test('blocca oltre 20 tentativi al minuto dallo stesso IP anche con email diverse', async ({
+    client,
+  }) => {
+    for (let attempt = 0; attempt < 20; attempt++) {
+      const response = await client
+        .post('/api/auth/login')
+        .json({ email: `spray${attempt}@example.com`, password: 'password-sbagliata' })
+      response.assertStatus(401)
+    }
+
+    const blocked = await client
+      .post('/api/auth/login')
+      .json({ email: 'spray-ultimo@example.com', password: 'password-sbagliata' })
+    blocked.assertStatus(429)
+  })
+
   test('blocca la sesta registrazione in un minuto con 429', async ({ client }) => {
     for (let attempt = 0; attempt < 5; attempt++) {
       await client.post('/api/auth/register').json({ email: 'spam@example.com', password: 'corta' })

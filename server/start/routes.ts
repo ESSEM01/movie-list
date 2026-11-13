@@ -9,7 +9,7 @@
 
 import router from '@adonisjs/core/services/router'
 import { middleware } from './kernel.js'
-import { authThrottle } from './limiter.js'
+import { authIpThrottle, authThrottle } from './limiter.js'
 
 // Health check
 router.get('/', async () => {
@@ -23,8 +23,10 @@ router.get('/', async () => {
 // Auth routes (non protette)
 router
   .group(() => {
-    router.post('/register', '#controllers/auth_controller.register').use(authThrottle)
-    router.post('/login', '#controllers/auth_controller.login').use(authThrottle)
+    router
+      .post('/register', '#controllers/auth_controller.register')
+      .use([authIpThrottle, authThrottle])
+    router.post('/login', '#controllers/auth_controller.login').use([authIpThrottle, authThrottle])
     router.post('/logout', '#controllers/auth_controller.logout').use(middleware.auth())
     router.get('/me', '#controllers/auth_controller.me').use(middleware.auth())
   })

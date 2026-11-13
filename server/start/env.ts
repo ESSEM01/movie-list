@@ -49,5 +49,5 @@ export default await Env.create(new URL('../', import.meta.url), {
   | Variables for configuring the limiter package
   |----------------------------------------------------------
   */
-  LIMITER_STORE: Env.schema.enum(['memory'] as const),
+  LIMITER_STORE: Env.schema.enum.optional(['memory'] as const),
 })

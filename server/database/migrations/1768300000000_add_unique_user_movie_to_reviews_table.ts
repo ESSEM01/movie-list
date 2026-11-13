@@ -15,6 +15,8 @@ export default class extends BaseSchema {
 
   async down() {
     this.schema.alterTable(this.tableName, (table) => {
+      // MySQL: la FK su user_id usa l'indice unique, ne serve uno proprio prima di rimuoverlo
+      table.index(['user_id'])
       table.dropUnique(['user_id', 'movie_id'])
     })
   }

@@ -10,6 +10,11 @@ import { createReviewValidator, listReviewsValidator } from '#validators/review'
 const publicAuthor = (query: ModelQueryBuilderContract<typeof User>) =>
   query.select('id', 'full_name')
 
+const isUniqueViolation = (error: unknown) => {
+  const code = (error as { code?: string })?.code
+  return code === 'ER_DUP_ENTRY' || code?.startsWith('SQLITE_CONSTRAINT') === true
+}
+
 export default class ReviewsController {
   // GET /api/reviews/:movieId
   public async index({ request, response }: HttpContext) {
@@ -36,12 +41,20 @@ export default class ReviewsController {
       return response.conflict({ message: 'You have already reviewed this movie' })
     }
 
-    const review = await Review.create({
-      userId: user.id,
-      movieId,
-      comment: content,
-      rating,
-    })
+    let review: Review
+    try {
+      review = await Review.create({
+        userId: user.id,
+        movieId,
+        comment: content,
+        rating,
+      })
+    } catch (error) {
+      if (isUniqueViolation(error)) {
+        return response.conflict({ message: 'You have already reviewed this movie' })
+      }
+      throw error
+    }
 
     await review.load('user', publicAuthor)
 
