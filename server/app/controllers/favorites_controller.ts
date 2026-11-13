@@ -23,7 +23,7 @@ export default class FavoritesController {
   /**
    * Add a movie to favorites
    */
-  async store({ auth, request, response }: HttpContext) {
+  async store({ auth, request, response, logger }: HttpContext) {
     const user = auth.getUserOrFail()
     const {
       id,
@@ -62,9 +62,10 @@ export default class FavoritesController {
         },
       })
     } catch (error) {
+      // Keep driver/SQL details in the server logs, never in the response
+      logger.error({ err: error, userId: user.id }, 'Unable to add favorite')
       return response.badRequest({
         message: 'Unable to add favorite',
-        error: error.message,
       })
     }
   }
