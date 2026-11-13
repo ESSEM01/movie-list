@@ -84,3 +84,31 @@ test.group('Reviews | store', (group) => {
     response.assertBodyContains({ errors: [{ field: 'content', rule: 'maxLength' }] })
   })
 })
+
+test.group('Reviews | una recensione per utente e film', (group) => {
+  group.each.setup(() => testUtils.db().withGlobalTransaction())
+
+  test('il database rifiuta due recensioni dello stesso utente sullo stesso film', async ({
+    assert,
+  }) => {
+    const user = await createUser()
+    await Review.create({ userId: user.id, movieId: 7, rating: 3, comment: 'Prima' })
+
+    await assert.rejects(() =>
+      Review.create({ userId: user.id, movieId: 7, rating: 5, comment: 'Seconda' })
+    )
+  })
+
+  test('POST di una seconda recensione sullo stesso film risponde 409', async ({ client }) => {
+    const user = await createUser()
+    await Review.create({ userId: user.id, movieId: 7, rating: 3, comment: 'Prima' })
+
+    const response = await client
+      .post('/api/reviews')
+      .json({ movieId: 7, rating: 5, content: 'Seconda' })
+      .loginAs(user)
+
+    response.assertStatus(409)
+    response.assertBodyContains({ message: 'You have already reviewed this movie' })
+  })
+})

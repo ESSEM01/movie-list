@@ -31,6 +31,11 @@ export default class ReviewsController {
 
     const { movieId, content, rating } = await request.validateUsing(createReviewValidator)
 
+    const existing = await Review.query().where('userId', user.id).where('movieId', movieId).first()
+    if (existing) {
+      return response.conflict({ message: 'You have already reviewed this movie' })
+    }
+
     const review = await Review.create({
       userId: user.id,
       movieId,
