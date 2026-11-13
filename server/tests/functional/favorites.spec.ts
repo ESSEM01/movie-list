@@ -39,3 +39,52 @@ test.group('Favorites | store', (group) => {
     }
   })
 })
+
+test.group('Favorites | validazione', (group) => {
+  group.each.setup(() => testUtils.db().withGlobalTransaction())
+
+  test('rifiuta un id film non positivo con 422', async ({ client }) => {
+    const user = await createUser()
+
+    for (const id of [0, -5, 1.5, 'abc']) {
+      const response = await client
+        .post('/api/favorites')
+        .json({ ...movie, id })
+        .loginAs(user)
+
+      response.assertStatus(422)
+      response.assertBodyContains({ errors: [{ field: 'id' }] })
+    }
+  })
+
+  test('rifiuta un titolo oltre 255 caratteri con 422', async ({ client }) => {
+    const user = await createUser()
+
+    const response = await client
+      .post('/api/favorites')
+      .json({ ...movie, title: 'a'.repeat(256) })
+      .loginAs(user)
+
+    response.assertStatus(422)
+    response.assertBodyContains({ errors: [{ field: 'title', rule: 'maxLength' }] })
+  })
+
+  test('accetta poster_path nullo e release_date mancante', async ({ client }) => {
+    const user = await createUser()
+
+    const response = await client
+      .post('/api/favorites')
+      .json({ id: 551, title: 'Senza poster', poster_path: null })
+      .loginAs(user)
+
+    response.assertStatus(201)
+  })
+
+  test('rifiuta un movieId non positivo in DELETE con 422', async ({ client }) => {
+    const user = await createUser()
+
+    const response = await client.delete('/api/favorites/0').loginAs(user)
+
+    response.assertStatus(422)
+  })
+})
