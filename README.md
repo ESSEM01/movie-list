@@ -113,6 +113,12 @@ npm run build:client
 npm run build:server
 ```
 
+La build del client finisce in `server/public/`: in produzione il server Adonis serve sia le API (`/api/...`) sia il client dallo stesso indirizzo.
+
+## Deploy
+
+Render (piano free) + TiDB Cloud Starter: vedi [DEPLOY.md](DEPLOY.md). La configurazione Render e in [`render.yaml`](render.yaml).
+
 ## API Endpoints
 
 Base URL: `http://localhost:3333/api`

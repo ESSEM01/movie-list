@@ -1,0 +1,53 @@
+# Blueprint Render: https://render.com/docs/blueprint-spec
+# Un solo web service: il server Adonis espone /api e serve il client React
+# buildato dallo stesso indirizzo. Database esterno: TiDB Cloud Starter.
+# Guida passo passo: DEPLOY.md
+services:
+  - type: web
+    name: movie-list
+    runtime: node
+    plan: free
+    region: frankfurt
+    # --include=dev: NODE_ENV=production vale anche in build e farebbe saltare
+    # le devDependencies (Vite, TypeScript, assembler) necessarie per compilare.
+    # build/ e un'app a se: riceve solo le dipendenze di produzione.
+    buildCommand: >-
+      npm ci --include=dev &&
+      VITE_API_URL=/api npm run build:client &&
+      npm run build:server &&
+      cd server/build && npm ci --omit=dev
+    # Sul piano free non c'e preDeployCommand: le migration girano all'avvio
+    startCommand: cd server/build && node ace migration:run --force && node bin/server.js
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NODE_VERSION
+        value: '24'
+      - key: HOST
+        value: 0.0.0.0
+      - key: LOG_LEVEL
+        value: info
+      - key: APP_KEY
+        generateValue: true
+      - key: SESSION_DRIVER
+        value: cookie
+      - key: LIMITER_STORE
+        value: memory
+      - key: DB_CONNECTION
+        value: mysql
+      - key: DB_SSL
+        value: 'true'
+      - key: DB_PORT
+        value: '4000'
+      # Da inserire nella dashboard Render alla creazione del Blueprint
+      - key: DB_HOST
+        sync: false
+      - key: DB_USER
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: DB_DATABASE
+        sync: false
+      - key: TMDB_API_KEY
+        sync: false
