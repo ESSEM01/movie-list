@@ -63,6 +63,7 @@ export default defineConfig({
     () => import('@adonisjs/session/session_provider'),
     () => import('@adonisjs/auth/auth_provider'),
     () => import('@adonisjs/limiter/limiter_provider'),
+    () => import('@adonisjs/static/static_provider'),
   ],
 
   /*
@@ -74,6 +75,22 @@ export default defineConfig({
   |
   */
   preloads: [() => import('#start/routes'), () => import('#start/kernel')],
+
+  /*
+  |--------------------------------------------------------------------------
+  | Metafiles
+  |--------------------------------------------------------------------------
+  |
+  | Files to copy to the build folder. The client build (Vite outDir) lands
+  | in public/ and is served by @adonisjs/static in production.
+  |
+  */
+  metaFiles: [
+    {
+      pattern: 'public/**',
+      reloadServer: false,
+    },
+  ],
 
   /*
   |--------------------------------------------------------------------------

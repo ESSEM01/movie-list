@@ -6,6 +6,8 @@ node_modules/
 # Production builds
 client/dist/
 server/build/
+# Build del client (Vite outDir), servita da Adonis
+server/public/
 
 # Environment variables
 .env
