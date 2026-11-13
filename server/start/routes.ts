@@ -9,7 +9,7 @@
 
 import router from '@adonisjs/core/services/router'
 import { middleware } from './kernel.js'
-import { authIpThrottle, authThrottle } from './limiter.js'
+import { authIpThrottle, authThrottle, tmdbThrottle } from './limiter.js'
 
 // Health check
 router.get('/', async () => {
@@ -50,3 +50,15 @@ router
   })
   .prefix('/api/reviews')
   .use(middleware.auth())
+
+// TMDB proxy (protetto): la chiave resta sul server
+router
+  .group(() => {
+    router.get('/movies/popular', '#controllers/tmdb_controller.popular')
+    router.get('/movies/:id', '#controllers/tmdb_controller.movie')
+    router.get('/search', '#controllers/tmdb_controller.search')
+    router.get('/genres', '#controllers/tmdb_controller.genres')
+    router.get('/genres/:genreId/movies', '#controllers/tmdb_controller.byGenre')
+  })
+  .prefix('/api/tmdb')
+  .use([middleware.auth(), tmdbThrottle])

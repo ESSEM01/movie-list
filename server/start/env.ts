@@ -50,4 +50,11 @@ export default await Env.create(new URL('../', import.meta.url), {
   |----------------------------------------------------------
   */
   LIMITER_STORE: Env.schema.enum.optional(['memory'] as const),
+
+  /*
+  |----------------------------------------------------------
+  | TMDB key (v3 API key or v4 read access token), server only
+  |----------------------------------------------------------
+  */
+  TMDB_API_KEY: Env.schema.string.optional(),
 })

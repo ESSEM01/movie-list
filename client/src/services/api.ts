@@ -1,6 +1,6 @@
-const API_KEY = import.meta.env.VITE_TMDB_API_KEY;
-const BASE_URL = "https://api.themoviedb.org/3";
 const BACKEND_URL = import.meta.env.VITE_API_URL;
+// TMDB passa dal server: la chiave non arriva mai al browser
+const TMDB_URL = `${BACKEND_URL}/tmdb`;
 
 // Helper for authenticated requests to backend
 const fetchWithAuth = async (url: string, options: RequestInit = {}) => {
@@ -23,28 +23,31 @@ const fetchWithAuth = async (url: string, options: RequestInit = {}) => {
     return response;
 };
 
-// TMDB API calls
-export const getPopularMovies = async () => {
-    const response = await fetch(`${BASE_URL}/movie/popular?api_key=${API_KEY}`);
+// Il server risponde con { message } oppure, per validazione e rate limit, { errors: [{ message }] }
+const errorMessage = (data: any, fallback: string): string =>
+    data?.message ?? data?.errors?.[0]?.message ?? fallback;
+
+// TMDB API calls (tramite il server)
+const tmdbGet = async (path: string) => {
+    const response = await fetchWithAuth(`${TMDB_URL}${path}`);
     const data = await response.json();
+    if (!response.ok) throw new Error(errorMessage(data, 'Failed to load movies'));
+    return data;
+};
+
+export const getPopularMovies = async () => {
+    const data = await tmdbGet('/movies/popular');
     return data.results;
 };
 
 export const searchMovies = async (query: string) => {
-    const response = await fetch(`${BASE_URL}/search/movie?api_key=${API_KEY}&query=${encodeURIComponent(query)}`);
-    const data = await response.json();
+    const data = await tmdbGet(`/search?query=${encodeURIComponent(query)}`);
     return data.results;
 };
 
 export const getMovieDetails = async (movieId: number) => {
-    const response = await fetch(`${BASE_URL}/movie/${movieId}?api_key=${API_KEY}&append_to_response=credits,videos`);
-    const data = await response.json();
-    return data;
+    return tmdbGet(`/movies/${movieId}`);
 };
-
-// Il server risponde con { message } oppure, per validazione e rate limit, { errors: [{ message }] }
-const errorMessage = (data: any, fallback: string): string =>
-    data?.message ?? data?.errors?.[0]?.message ?? fallback;
 
 // Backend API calls - Auth
 export const register = async (email: string, password: string, fullName?: string) => {
@@ -171,15 +174,13 @@ export const isAuthenticated = async (): Promise<boolean> => {
 
 // Get genres
 export const getGenres = async () => {
-    const response = await fetch(`${BASE_URL}/genre/movie/list?api_key=${API_KEY}`);
-    const data = await response.json();
+    const data = await tmdbGet('/genres');
     return data.genres;
 }
 
 // Discover movies by genre
 export const discoverMoviesByGenre = async (genreId: number) => {
-    const response = await fetch(`${BASE_URL}/discover/movie?api_key=${API_KEY}&with_genres=${genreId}`);
-    const data = await response.json();
+    const data = await tmdbGet(`/genres/${genreId}/movies`);
     return data.results;
 }
 

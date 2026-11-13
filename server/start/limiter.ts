@@ -26,6 +26,14 @@ export const authThrottle = limiter.define('auth', (ctx) => {
 })
 
 /**
+ * TMDB proxy: generous per-user budget that still stops a stolen session
+ * from burning the shared API key quota.
+ */
+export const tmdbThrottle = limiter.define('tmdb', (ctx) => {
+  return limiter.allowRequests(120).every('1 minute').usingKey(`tmdb_${ctx.auth.user!.id}`)
+})
+
+/**
  * Per-IP ceiling across all emails, against password spraying from a
  * single address.
  */
